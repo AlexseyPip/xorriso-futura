@@ -1,3 +1,13 @@
+### Port for FuturaOS
+Attention!
+This repository is an adapted port of xorriso for the Futura operating system. It is NOT the original GNU xorriso project and is not affiliated with the GNU project.
+
+The original source code and documentation are available at:
+https://www.gnu.org/software/xorriso/
+
+This port may contain modifications related to FuturaOS system calls, libraries, and build processes. Please refer to the official GNU repository for the latest version and general documentation.
+
+
 ------------------------------------------------------------------------------
       Contribution of libburnia-project.org to the GNU Operating System
 ------------------------------------------------------------------------------
