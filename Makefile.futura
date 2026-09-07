@@ -1,0 +1,71 @@
+# GNU xorriso 1.5.8 for FuturaOS
+# From FuturaOS root:
+#   make -f third_party/xorriso/Makefile.futura
+# Result:
+#   base/usr/bin/xorriso
+
+CC = x86_64-pc-toaru-gcc
+BASE ?= base
+BUILD ?= .build/xorriso
+SRCROOT := $(dir $(lastword $(MAKEFILE_LIST)))
+
+CPPFLAGS += -DFUTURAOS -DHAVE_CONFIG_H -DXorriso_standalonE \
+  -I$(SRCROOT) -I$(SRCROOT)futura -I$(SRCROOT)libburn \
+  -I$(SRCROOT)libisofs -I$(SRCROOT)libisoburn -I$(SRCROOT)xorriso
+CFLAGS += -O2 -fPIE -fno-strict-aliasing
+LDFLAGS += -no-pie
+LDLIBS += -lc -lm
+
+SRC := \
+  xorriso/xorriso_main.c xorriso/sfile.c xorriso/aux_objects.c \
+  xorriso/findjob.c xorriso/check_media.c xorriso/misc_funct.c \
+  xorriso/text_io.c xorriso/match.c xorriso/emulators.c xorriso/disk_ops.c \
+  xorriso/cmp_update.c xorriso/parse_exec.c xorriso/opts_a_c.c \
+  xorriso/opts_d_h.c xorriso/opts_i_o.c xorriso/opts_p_z.c \
+  xorriso/base_obj.c xorriso/lib_mgt.c xorriso/sort_cmp.c \
+  xorriso/drive_mgt.c xorriso/iso_img.c xorriso/iso_tree.c \
+  xorriso/iso_manip.c xorriso/write_run.c xorriso/read_run.c xorriso/filters.c \
+  libisoburn/isoburn.c libisoburn/isofs_wrap.c libisoburn/burn_wrap.c \
+  libisoburn/data_source.c \
+  libisofs/builder.c libisofs/node.c libisofs/tree.c libisofs/image.c \
+  libisofs/iso1999.c libisofs/fsource.c libisofs/fs_local.c libisofs/fs_image.c \
+  libisofs/messages.c libisofs/libiso_msgs.c libisofs/stream.c libisofs/util.c \
+  libisofs/util_rbtree.c libisofs/util_htable.c libisofs/filesrc.c \
+  libisofs/ecma119.c libisofs/ecma119_tree.c libisofs/buffer.c \
+  libisofs/rockridge.c libisofs/rockridge_read.c libisofs/joliet.c \
+  libisofs/hfsplus.c libisofs/hfsplus_decompose.c libisofs/hfsplus_classes.c \
+  libisofs/hfsplus_case.c libisofs/eltorito.c libisofs/data_source.c \
+  libisofs/find.c libisofs/filter.c libisofs/filters/external.c \
+  libisofs/filters/zisofs.c libisofs/filters/gzip.c libisofs/system_area.c \
+  libisofs/make_isohybrid_mbr.c libisofs/aaip_0_2.c libisofs/md5.c \
+  libburn/async.c libburn/cdtext.c libburn/cleanup.c libburn/debug.c \
+  libburn/drive.c libburn/ecma130ab.c libburn/file.c libburn/init.c \
+  libburn/libdax_audioxtr.c libburn/libdax_msgs.c libburn/mmc.c \
+  libburn/null.c libburn/options.c libburn/read.c libburn/sbc.c \
+  libburn/sector.c libburn/sg.c libburn/source.c libburn/spc.c \
+  libburn/structure.c libburn/toc.c libburn/util.c libburn/write.c
+
+SRC := $(addprefix $(SRCROOT),$(SRC)) \
+  $(SRCROOT)futura/regex.c $(SRCROOT)futura/crc.c $(SRCROOT)futura/futura_stubs.c
+OBJ := $(patsubst $(SRCROOT)%.c,$(BUILD)/%.o,$(SRC))
+
+.PHONY: all install clean
+all: install
+
+$(BUILD)/%.o: $(SRCROOT)%.c $(SRCROOT)config.h $(SRCROOT)futura/compat.h
+	@mkdir -p $(dir $@)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -include $(SRCROOT)futura/compat.h -c $< -o $@
+
+$(BUILD)/bin/xorriso: $(OBJ)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJ) $(LDLIBS)
+
+install: $(BUILD)/bin/xorriso
+	@mkdir -p $(BASE)/usr/bin
+	cp $(BUILD)/bin/xorriso $(BASE)/usr/bin/xorriso
+	chmod +x $(BASE)/usr/bin/xorriso
+	@echo '[FUTURA] xorriso installed as $(BASE)/usr/bin/xorriso'
+
+clean:
+	rm -rf $(BUILD)
+	rm -f $(BASE)/usr/bin/xorriso
